@@ -20,10 +20,10 @@ Fire your favorite browser at [http://localhost:9090/explore/view?name=/](http:/
 Enjoy!
 
 # Screenshots
-![explorer](images/groovide_explore.jpg)
+![explorer](https://github.com/fix/groovide/raw/master/images/groovide_explore.jpg)
 
-![markdown](images/groovide_md.jpg)
+![markdown](https://github.com/fix/groovide/raw/master/images/groovide_md.jpg)
 
-![shell](images/groovide_shell.jpg)
+![shell](https://github.com/fix/groovide/raw/master/images/groovide_shell.jpg)
 
-![editor](images/groovide_editor.jpg)
+![editor](https://github.com/fix/groovide/raw/master/images/groovide_editor.jpg)
