@@ -1,5 +1,5 @@
 @Grab(group='org.pegdown', module='pegdown', version='1.1.0')
-@Grab(group='org.apache.tika', module='tika-parsers', version='1.0')
+//@Grab(group='org.apache.tika', module='tika-parsers', version='1.0')
 
 import java.io.File
 import org.pegdown.PegDownProcessor
@@ -41,8 +41,8 @@ html.html {
             }
           }
           if(dir.isDirectory()){
-            form("class":"pull-left", action:"create"){
-              input(style:"height:auto", name:"name", type:"text", placeholder:"New File")
+            form("class":"pull-left", action:"create", style:"margin-right:10px;"){
+              input(style:"height:28px", name:"name", type:"text", placeholder:"New File")
               input(name:"parent", type:"hidden", value:dir.canonicalPath)
             }
             form("class":"pull-left", enctype:"multipart/form-data", action:"upload", method:"post"){
@@ -55,8 +55,8 @@ html.html {
       }
     }
     div("class":'container'){
+        h3(dir.canonicalPath)
         if(dir.isDirectory()){
-          h3(dir.canonicalPath)
           table("class":"files"){
             thead{
                 th("name")
@@ -100,7 +100,7 @@ html.html {
           }
           iframe("class":"container-fluid", src:"shell?dir="+dir.canonicalPath, style:"position:fixed;top:40px;height:100%;border:none;visibility:hidden;background-color:#eee;", id:"shell")
         }
-        if(dir.name=~/\.(png|jpg)$/){
+        if(dir.name=~/\.(png|jpg|tiff)$/){
           img(src:"getfile?name="+dir.canonicalPath)
         }
         else if(dir.length()<200000){

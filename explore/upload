@@ -5,9 +5,6 @@ import org.apache.commons.fileupload.DiskFileUpload
 import org.apache.commons.fileupload.FileUpload
 import java.io.File
 
-println request.parameterMap
-println FileUpload.isMultipartContent(request)
-uploads = [:]
 String dir
 if(FileUpload.isMultipartContent(request)) {
   new DiskFileUpload().parseRequest(request).each{
