@@ -1,0 +1,43 @@
+html.html{
+    head{
+        title("Groovy Shell")
+        script(src:"http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", type:"text/javascript", charset:"utf-8"){mkp.yield("")}
+        script(src:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.js', type:'text/javascript'){mkp.yield("")}
+        link(href:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.css', rel:"stylesheet", type:'text/css')
+        script{
+            mkp.yieldUnescaped('''
+            $(document).ready(function(){
+                $('#form').submit(submitForm);
+                function submitForm() {
+                  var form = $(this);
+                    $.ajax({
+                      url: "cli?",
+                      type: "post",
+                      data: form.serialize(),
+                      success: success
+                    });
+                  return false;
+                }
+                function success(data){
+                    $('#shell pre').replaceWith("<pre class='prettyprint'>"+data+"</pre>");
+                    $('#cmd').val("");
+                    prettyPrint();
+                }
+            });
+            ''')
+        }
+    }
+    body(onload:"prettyPrint()"){
+        div(style:"width:100%;height:100%"){
+            div(id:"cli"){
+                form(action:"cli", method:"post", id:"form"){
+                  input(type:"text", id:"cmd", name:"command", style:"top:10px; width:100%; height:25px;")
+                  input(type:"hidden", name:"dir", value:request.getParameter("dir"))
+                }
+            }
+            div(id:"shell", style:"top:45px"){
+                pre()
+            }
+        }
+    }
+}

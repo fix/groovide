@@ -1,0 +1,9 @@
+import java.io.File
+
+def file=new File(new File(request.getParameter("parent")),request.getParameter("name"))
+
+if(!file.exists()) file.createNewFile()
+
+response.sendRedirect("view?name="+file.parentFile.canonicalPath);
+
+ 

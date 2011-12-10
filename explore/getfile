@@ -1,0 +1,18 @@
+@Grab(group='javax.activation', module='activation', version='1.1.1')
+
+file=new java.io.File(request.getParameter("name"))
+if(request.getParameter("download")){
+  response.setContentType(file.toURI().toURL().openConnection().contentType)
+  response.setContentLength( (int)file.length() )
+  response.setHeader( "Content-Disposition", "attachment; filename=\"" + file.name + "\"" )
+}
+
+byte[] bytes = new byte[1024];
+int bytesRead;
+def is=file.newInputStream()
+
+while ((bytesRead = is.read(bytes)) != -1) {
+    response.outputStream << bytes
+}
+
+is.close()
