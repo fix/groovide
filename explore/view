@@ -10,8 +10,8 @@ import org.apache.tika.parser.Parser
 dir=new File(request.parameterMap.name[0])
 
 def getRights(File file){
-    ["sh", "-c", "ls -l "+file.parentFile.canonicalPath+" | grep -w "+file.name +" | awk '{print \$1}'"].execute().text
-    //(file.canRead()?"r":".")+(file.canWrite()?"w":".")+(file.canExecute()?"x":".")
+    //["sh", "-c", "ls -l "+file.parentFile.canonicalPath.replaceAll(" ","\\ ")+" | grep -w '"+file.name +"' | awk '{print \$1}'"].execute().text
+    (file.canRead()?"r":".")+(file.canWrite()?"w":".")+(file.canExecute()?"x":".")
 }
 
 html.html {
@@ -40,15 +40,23 @@ html.html {
               li{a(target:"shell", style:"cursor:pointer", onclick:"var visible=\$('#shell').css('visibility');\$('#shell').css('visibility',visible=='visible'?'hidden':'visible');return true;", "Shell")}
             }
           }
-          if(dir.isDirectory()) form("class":"pull-left", action:"create"){
-            input(style:"height:auto", name:"name", type:"text", placeholder:"New File")
-            input(name:"parent", type:"hidden", value:dir.canonicalPath)
+          if(dir.isDirectory()){
+            form("class":"pull-left", action:"create"){
+              input(style:"height:auto", name:"name", type:"text", placeholder:"New File")
+              input(name:"parent", type:"hidden", value:dir.canonicalPath)
+            }
+            form("class":"pull-left", enctype:"multipart/form-data", action:"upload", method:"post"){
+                input(name:"parent", type:"hidden", value:dir.canonicalPath)
+                input(style:"height:auto", name:"fileupload", type:"file", placeholder:"Upload")
+                input(type:"submit", value:"Send")
+            }
           }
         }
       }
     }
     div("class":'container'){
         if(dir.isDirectory()){
+          h3(dir.canonicalPath)
           table("class":"files"){
             thead{
                 th("name")
@@ -57,19 +65,31 @@ html.html {
                 th("permissions")
                 th("mimetype")
             }
-            if(dir.parentFile) tr{
-              td{
-                  a(href:"?name=${dir.parentFile.canonicalPath}", "..")
+            tr{
+                td{
+                  a(href:"?name=${dir.canonicalPath}", ".")
+                }
+                td(dir.length())
+                td(new Date(dir.lastModified()))
+                td(getRights(dir))
+                td()
               }
-              td(dir.parentFile.length())
-              td(new Date(dir.parentFile.lastModified()))
-              td(getRights(dir.parentFile))
-              td()
+            if(dir.parentFile){
+              tr{
+                td{
+                  a(href:"?name=${dir.parentFile.canonicalPath}", "..")
+                }
+                td(dir.parentFile.length())
+                td(new Date(dir.parentFile.lastModified()))
+                td(getRights(dir.parentFile))
+                td()
+              }
             }
+            
             if(dir.canExecute()) dir.listFiles().sort{a,b->a.isDirectory()?(b.isDirectory()?a.name.compareTo(b.name):-1):(b.isDirectory()?1:a.name.compareTo(b.name))}.each{file->
               if(!file.isHidden()) tr{
                 td{
-                  a(href:"?name=${file.canonicalPath}", "${file.name}"+(file.isDirectory()?"/":""))
+                  a(href:"?name=${file.canonicalPath}", " ${file.name}"+(file.isDirectory()?"/":""))
                 }
                 td(file.length())
                 td(new Date(file.lastModified()))

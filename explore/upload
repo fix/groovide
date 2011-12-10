@@ -1,0 +1,23 @@
+@Grab(group='commons-fileupload', module='commons-fileupload', version='1.2.2')
+@Grab(group='commons-io', module='commons-io', version='2.1')
+
+import org.apache.commons.fileupload.DiskFileUpload
+import org.apache.commons.fileupload.FileUpload
+import java.io.File
+
+println request.parameterMap
+println FileUpload.isMultipartContent(request)
+uploads = [:]
+String dir
+if(FileUpload.isMultipartContent(request)) {
+  new DiskFileUpload().parseRequest(request).each{
+    if(it.isFormField() && it.fieldName=="parent") dir=it.string
+    else{
+        File file=new File(dir+"/"+it.name)
+        file.createNewFile()
+        it.write(file)
+    }
+  }
+}
+
+response.sendRedirect("view?name="+dir)
