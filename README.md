@@ -13,6 +13,6 @@ It features:
 After you forked the repository, go to the root folder and 
 `groovy groovy-app.groovy`
 
-Fire your favorite browser at `http://localhost:9090/explore/view?name=/`
+Fire your favorite browser at [http://localhost:9090/explore/view?name=/](http://localhost:9090/explore/view?name=/)
 
 Enjoy!
