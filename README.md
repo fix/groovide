@@ -1,13 +1,14 @@
 # Introduction
 
-Groovide is a tiny web editor that leverage groovlet, grape, ace, twitter bootstrap.
+Groovide is a tiny web editor that leverage groovlet, grape, ace, pegdown and twitter bootstrap.
 It is written 100% in groovy and contains less than 300 lines!
 
 It features:
 
-* a file explorer
+* a file explorer, with color syntax, html and markdown preview
 * a file editor (using ace)
 * a shell (yeah, check the source for the ajax magic!)
+* you can even stream your video from the app!
 
 # Installation
 After you forked the repository, go to the root folder and 
