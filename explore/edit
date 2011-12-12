@@ -1,17 +1,19 @@
 import java.io.File
 
-file=new File(request.parameterMap.name[0])
+if(!session?.authenticated) forward("/auth/login?request="+request.requestURI+"?"+request.queryString)
+
+file=new File(request.getParameter("name"))
 
 html.html {
   head {
     title('Groovy Editor')
     style('''
-        body {
+        body{
           overflow: hidden;
           top:40px;
           position:relative;
         }
-        #editor {
+        #editor{
           position: absolute;
           top:0px;
           right:0px;
@@ -29,7 +31,19 @@ html.html {
           window.editor = ace.edit("editor");
           var Mode = require("ace/mode/groovy").Mode;
           window.editor.getSession().setMode(new Mode());
-      });
+          editor.getSession().on('change', function(){$('#status').html("*")});
+          editor.commands.addCommand({
+            name: "save",
+            bindKey: {
+              win: "Ctrl-S",
+              mac: "Command-S",
+              sender: "editor"
+            },
+            exec: function() {
+             jQuery.post("save",{text:window.editor.getSession().getValue(),file:"'''+file.canonicalPath+'''"},function(data){$('#status').html("")});
+            }
+          });
+        });
       ''')
     link(href:'http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css', rel:"stylesheet", type:'text/css')
   }
@@ -37,11 +51,12 @@ html.html {
     div("class":"topbar"){
       div("class":"topbar-inner"){
         div("class":"container"){
-          a(class:"brand", href:"#",'"'+file.name+'"')
+          a(class:"brand", href:"#",file.name)
+          a(class:"brand", id:"status", "")
           ul("class":"nav"){
             li{a(href:"view?name=${file}","Exit")}
             li{
-                a(href:"#", onclick:'jQuery.post("save",{text:window.editor.getSession().getValue(),file:"'+file.canonicalPath+'"},function(data){});', "Save")
+              a(href:"#", onclick:'jQuery.post("save",{text:window.editor.getSession().getValue(),file:"'+file.canonicalPath+'"},function(data){$("#status").html("")});', "Save")
             }
             if(file.isDirectory()){
                li{a(href:"view?name="+file.canonicalPath, "Exit")}
