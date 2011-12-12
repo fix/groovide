@@ -1,0 +1,34 @@
+if(!session){
+  session=request.getSession(true)
+}
+
+def user=request.getParameter("user")
+def pwd=request.getParameter("pwd")
+   
+if(user=="admin" && pwd=="groovide"){
+    session.authenticated=true
+    redirect(request.getParameter("request"))
+}
+else html.html{
+    head{
+        title("Sign In")
+        style('''
+            body * {
+                font-size:30px;
+                background-color: #efe;
+            }
+            ''')
+    }
+    body(style:"background-color: #efe;"){
+        
+        form(style:"position: fixed;top:20%;left:40%", action:"/auth/login", method:"post"){
+            h3("Login")
+            input(type:"text", name:"user", placeholder:"user")
+            br()
+            input(type:"password", name:"pwd", placeholder:"password")
+            br()
+            input(type:"hidden", name:"request", value:request.getParameter("request"))
+            input(type:"submit", value:"Sign In")
+        }
+    }
+}

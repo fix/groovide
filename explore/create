@@ -1,5 +1,7 @@
 import java.io.File
 
+if(!session?.authenticated) forward("/auth/login?request="+request.requestURI+"?"+request.queryString)
+
 def file=new File(new File(request.getParameter("parent")),request.getParameter("name"))
 
 if(!file.exists()) file.createNewFile()

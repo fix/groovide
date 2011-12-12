@@ -17,11 +17,12 @@ def startJetty() {
     resource.resourceBase=".";
     contexts.addHandler(resource)
 
-    Context explore = new Context(contexts,"/explore",Context.SESSIONS);
-    explore.resourceBase = './explore/'  // Look in current 'explore' dir for Groovy scripts.
-    explore.addServlet(GroovyServlet, '/')  // All files will be served.
+    Context explore = new Context(contexts,"/",Context.SESSIONS);
+    explore.resourceBase = '.'
+    explore.addServlet(GroovyServlet, '/explore/*') 
+    explore.addServlet(GroovyServlet, '/auth/*') 
     explore.setAttribute('version', '1.0')  // Set an context attribute.
-          
+
     StatisticsHandler stats = new StatisticsHandler();
     contexts.addHandler(stats);
     

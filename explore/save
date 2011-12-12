@@ -1,5 +1,7 @@
 import java.io.File
 
+if(!session?.authenticated) redirect("/auth/login?request="+request.requestURI+"?"+request.queryString)
+
 new File(request.getParameter("file")).write(request.getParameter("text"))
 
 println "ok"

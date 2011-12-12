@@ -5,6 +5,8 @@ import org.apache.commons.fileupload.DiskFileUpload
 import org.apache.commons.fileupload.FileUpload
 import java.io.File
 
+if(!session?.authenticated) redirect("/auth/login?request="+request.requestURI+"?"+request.queryString)
+
 String dir
 if(FileUpload.isMultipartContent(request)) {
   new DiskFileUpload().parseRequest(request).each{

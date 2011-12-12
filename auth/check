@@ -1,0 +1,4 @@
+if(!session?.authenticated) forward("/auth/login")
+else println "ok"
+
+

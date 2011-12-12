@@ -3,9 +3,8 @@
 
 import java.io.File
 import org.pegdown.PegDownProcessor
-import org.apache.tika.metadata.Metadata
-import org.apache.tika.parser.AutoDetectParser
-import org.apache.tika.parser.Parser
+
+if(!session?.authenticated) forward("/auth/login?request="+request.requestURI+"?"+request.queryString)
 
 dir=new File(request.parameterMap.name[0])
 
@@ -50,6 +49,7 @@ html.html {
                 input(style:"height:auto", name:"fileupload", type:"file", placeholder:"Upload")
                 input(type:"submit", value:"Send")
             }
+            ul("class":"nav secondary-nav"){li{a(href:"/auth/logout", "Logout")}}
           }
         }
       }
