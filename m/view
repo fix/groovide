@@ -5,8 +5,7 @@ import org.pegdown.PegDownProcessor
 
 if(!session?.authenticated) forward("/auth/login?request="+request.requestURI+"?"+request.queryString)
 
-def dir=request.getParameter("name")
-File f=new File(dir)
+File f=new File(request.getParameter("name"))
 
 println "<!DOCTYPE html>"
 html.html{
@@ -14,30 +13,21 @@ html.html{
         title("Groovide mobile")
         meta(name:"viewport", content:"width=device-width, initial-scale=1")
         link(rel:"stylesheet", href:"http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.css")
-        script(type:"text/javascript",src:"http://code.jquery.com/jquery-1.6.4.min.js"){mkp.yield("")}
-        script(type:"text/javascript",src:"http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.js", '''
-            $(document).bind("mobileinit", function(){
-                $.mobile.touchOverflowEnabled = true;
-            });
-        ''')
-        if(!f.isDirectory()) {
-            script(src:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.js', type:'text/javascript'){mkp.yield("")}
-            link(href:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.css', rel:"stylesheet", type:'text/css')
-        }
-        
+        script(type:"text/javascript",src:"http://code.jquery.com/jquery-1.6.4.min.js")
+        script(type:"text/javascript",src:"http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.js")
     }
-    body(onload:"prettyPrint()"){
+    body{
         div("data-role":"page"){
-            div("data-role":"header", "data-position":"fixed"){
+            div("data-role":"header"){
                 if(f.isDirectory()){
-                    
+                    a(rel:"external", href:"/explore/shell?dir="+f.canonicalPath, "Shell")
                 }
                 else{
                     a(href:"view?name="+f.parentFile.canonicalPath, "data-transition":"flip", "data-direction":"reverse", "Exit")
                 }
                 h1(f.name)
             }
-            div("data-role":"content", "data-scroll":"true"){
+            div("data-role":"content"){
                 if(f.isDirectory()){
                     ul("data-role":"listview", "data-inset":"true", "data-filter":"true"){
                         li{a(href:"view?name="+f.canonicalPath,".")}
@@ -46,19 +36,18 @@ html.html{
                             if(!item.isHidden())li{a("data-transition":item.isDirectory()?"":"flip", href:"view?name="+item.canonicalPath, item.name+(item.isDirectory()?"/":""))}
                         }
                     }
+                    iframe("class":"container-fluid", src:"/explore/shell?dir="+f.canonicalPath, style:"z-index:10000;position:fixed;top:50px;width:100%;height:500px;border:none;visibility:hidden;background-color:#eee;", id:"shell")
                 }
                 else{
                     if(f.name=~/\.(png|jpg|tiff)$/){
-                        img(src:"../explore/getfile?name="+f.canonicalPath)
+                        img(width:"100%", src:"../explore/getfile?name="+f.canonicalPath)
                     }
                     else if(f.length()<200000){
-                    if(f.name.endsWith(".md")){
+                      if(f.name.endsWith(".md")){
                         mkp.yieldUnescaped(new PegDownProcessor().markdownToHtml(f.text))
                       }
                       else if(f.name.endsWith(".html")){
-                        frame(width:'100%', height:'100%'){
                           mkp.yieldUnescaped(f.text)
-                        }
                       }
                       else{
                         pre("class":"prettyprint"){
@@ -68,7 +57,7 @@ html.html{
                     }
                 }
             }
-            div("data-role":"footer", "data-position":"fixed"){
+            div("data-role":"footer"){
                 div("data-role":"navbar"){
                     ul{
                         li{a(rel:"external", href:"../auth/logout","Logout")}
