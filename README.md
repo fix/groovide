@@ -15,7 +15,9 @@ It features:
 After you forked the repository, go to the root folder and 
 `groovy groovy-app.groovy`
 
-Fire your favorite browser at [http://localhost:9090/explore/view?name=/](http://localhost:9090/explore/view?name=/)
+Fire your favorite browser at [http://localhost:9090/explore/view?name=/](http://localhost:9090/explore/view?name=/).
+
+You will be prompted for a user and a password. It is admin/groovide and it is not changeable yet, unless you change it in the source of auth/login.
 
 Enjoy!
 
