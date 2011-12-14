@@ -6,6 +6,7 @@ It is written 100% in groovy and contains less than 300 lines!
 It features:
 
 * a file explorer, with color syntax, html and markdown preview
+* mobile version (for instance browse to m/view?name=/home/)
 * a file upload capability
 * a file editor (using ace)
 * a shell (yeah, check the source for the ajax magic!)
