@@ -1,0 +1,86 @@
+@Grab(group='org.pegdown', module='pegdown', version='1.1.0')
+
+import java.io.File
+import org.pegdown.PegDownProcessor
+
+if(!session?.authenticated) forward("/auth/login?request="+request.requestURI+"?"+request.queryString)
+
+def dir=request.getParameter("name")
+File f=new File(dir)
+
+println "<!DOCTYPE html>"
+html.html{
+    head{
+        title("Groovide mobile")
+        meta(name:"viewport", content:"width=device-width, initial-scale=1")
+        link(rel:"stylesheet", href:"http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.css")
+        script(type:"text/javascript",src:"http://code.jquery.com/jquery-1.6.4.min.js"){mkp.yield("")}
+        script(type:"text/javascript",src:"http://code.jquery.com/mobile/1.0/jquery.mobile-1.0.min.js", '''
+            $(document).bind("mobileinit", function(){
+                $.mobile.touchOverflowEnabled = true;
+            });
+        ''')
+        if(!f.isDirectory()) {
+            script(src:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.js', type:'text/javascript'){mkp.yield("")}
+            link(href:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.css', rel:"stylesheet", type:'text/css')
+        }
+        
+    }
+    body(onload:"prettyPrint()"){
+        div("data-role":"page"){
+            div("data-role":"header", "data-position":"fixed"){
+                if(f.isDirectory()){
+                    
+                }
+                else{
+                    a(href:"view?name="+f.parentFile.canonicalPath, "data-transition":"flip", "data-direction":"reverse", "Exit")
+                }
+                h1(f.name)
+            }
+            div("data-role":"content", "data-scroll":"true"){
+                if(f.isDirectory()){
+                    ul("data-role":"listview", "data-inset":"true", "data-filter":"true"){
+                        li{a(href:"view?name="+f.canonicalPath,".")}
+                        if(f.parentFile) li("data-icon":"arrow-l"){a(href:"view?name="+f.parentFile.canonicalPath, "data-direction":"reverse", "..")}
+                        if(f.canExecute()) f.listFiles().sort{a,b->a.isDirectory()?(b.isDirectory()?a.name.compareTo(b.name):-1):(b.isDirectory()?1:a.name.compareTo(b.name))}.each{item->
+                            if(!item.isHidden())li{a("data-transition":item.isDirectory()?"":"flip", href:"view?name="+item.canonicalPath, item.name+(item.isDirectory()?"/":""))}
+                        }
+                    }
+                }
+                else{
+                    if(f.name=~/\.(png|jpg|tiff)$/){
+                        img(src:"../explore/getfile?name="+f.canonicalPath)
+                    }
+                    else if(f.length()<200000){
+                    if(f.name.endsWith(".md")){
+                        mkp.yieldUnescaped(new PegDownProcessor().markdownToHtml(f.text))
+                      }
+                      else if(f.name.endsWith(".html")){
+                        frame(width:'100%', height:'100%'){
+                          mkp.yieldUnescaped(f.text)
+                        }
+                      }
+                      else{
+                        pre("class":"prettyprint"){
+                          mkp.yield(f.text)
+                        }
+                      }
+                    }
+                }
+            }
+            div("data-role":"footer", "data-position":"fixed"){
+                div("data-role":"navbar"){
+                    ul{
+                        li{a(rel:"external", href:"../auth/logout","Logout")}
+                        if(f.isDirectory()){
+                           
+                        }
+                        else{
+                            li{a(rel:"external", href:"../explore/getfile?download=true&name="+f.canonicalPath,"Download")}
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

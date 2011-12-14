@@ -1,0 +1,6 @@
+html.html{
+    body{
+        h1("Welcome to Groovide")
+        a(href:"view?name="+System.getProperty("user.dir"),"Start Here!")
+    }
+}

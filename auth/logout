@@ -1,1 +1,2 @@
 session?.authenticated=null
+redirect("/explore/index")

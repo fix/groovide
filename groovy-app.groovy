@@ -21,6 +21,7 @@ def startJetty() {
     explore.resourceBase = '.'
     explore.addServlet(GroovyServlet, '/explore/*') 
     explore.addServlet(GroovyServlet, '/auth/*') 
+    explore.addServlet(GroovyServlet, '/m/*')
     explore.setAttribute('version', '1.0')  // Set an context attribute.
 
     StatisticsHandler stats = new StatisticsHandler();

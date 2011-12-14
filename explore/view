@@ -6,20 +6,21 @@ import org.pegdown.PegDownProcessor
 
 if(!session?.authenticated) forward("/auth/login?request="+request.requestURI+"?"+request.queryString)
 
-dir=new File(request.parameterMap.name[0])
+dir=new File(request.getParameter("name"))
 
 def getRights(File file){
     //["sh", "-c", "ls -l "+file.parentFile.canonicalPath.replaceAll(" ","\\ ")+" | grep -w '"+file.name +"' | awk '{print \$1}'"].execute().text
     (file.canRead()?"r":".")+(file.canWrite()?"w":".")+(file.canExecute()?"x":".")
 }
 
+println "<!DOCTYPE html>"
 html.html {
   head {
     title 'Groovy File Explorer'
     link(href:'http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css', rel:"stylesheet", type:'text/css')
     link(href:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.css', rel:"stylesheet", type:'text/css')
     script(src:"http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", type:"text/javascript", charset:"utf-8"){mkp.yield("")}
-    script(src:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.js', type:'text/javascript'){yield("")}
+    script(src:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.js', type:'text/javascript'){mkp.yield("")}
     style('.files td{padding:2px}')
   }
   body(onload:"prettyPrint()",style:"position:relative;top:40px") {
@@ -41,7 +42,7 @@ html.html {
           }
           if(dir.isDirectory()){
             form("class":"pull-left", action:"create", style:"margin-right:10px;"){
-              input(style:"height:28px", name:"name", type:"text", placeholder:"New File")
+              input(name:"name", type:"text", placeholder:"New File")
               input(name:"parent", type:"hidden", value:dir.canonicalPath)
             }
             form("class":"pull-left", enctype:"multipart/form-data", action:"upload", method:"post"){
@@ -100,7 +101,7 @@ html.html {
           }
           iframe("class":"container-fluid", src:"shell?dir="+dir.canonicalPath, style:"position:fixed;top:40px;height:100%;border:none;visibility:hidden;background-color:#eee;", id:"shell")
         }
-        if(dir.name=~/\.(png|jpg|tiff)$/){
+        else if(dir.name.toLowerCase()=~/\.(png|jpg|tiff)$/){
           img(src:"getfile?name="+dir.canonicalPath)
         }
         else if(dir.length()<200000){
@@ -117,6 +118,12 @@ html.html {
               mkp.yield(dir.text)
             }
           }
+        }
+        else if(dir.name.endsWith(".avi")){
+            script(src:"http://html5.kaltura.org/js"){mkp.yield("")}
+            video("controls":"", width:"720", height:"306"){
+              source(type:"video/mp4", src:"/explore/getfile?download=true&name="+dir.canonicalPath)
+            }
         }
         
    }
