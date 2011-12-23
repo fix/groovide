@@ -10,7 +10,7 @@ It features:
 * a file upload capability
 * a file editor (using ace)
 * a shell (yeah, check the source for the ajax magic!)
-* a basic grails IDE (i.e. tree viewer, shell, editor, remember the last edited files when not saved, even when you closed the browser, you need HTML5 browser)
+* a basic grails IDE (i.e. tree viewer, shell, editor, remember the last edited files when not saved, even when you closed the browser, you need HTML5 browser) at `http://host:9090/grails/ide?name=/path/to/your/grails/root/project`
 * you can even stream your video from the app!
 
 # Installation
