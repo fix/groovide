@@ -1,0 +1,4 @@
+if(!session?.authenticated) forward("/auth/login?request="+request.requestURI+"?"+request.queryString)
+
+file=new File(request.getParameter("name"))
+print file.text

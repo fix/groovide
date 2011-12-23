@@ -1,9 +1,8 @@
-@Grab(group='org.mortbay.jetty', module='jetty-embedded', version='6.1.14')
+@Grab(group='org.eclipse.jetty', module='jetty-servlet', version='8.0.4.v20111024')
 
-import org.mortbay.jetty.Server
-import org.mortbay.jetty.servlet.*
-import org.mortbay.jetty.handler.*
-import org.mortbay.servlet.*
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.servlet.*
+import org.eclipse.jetty.server.handler.*
 
 import groovy.servlet.*
 
@@ -13,11 +12,12 @@ def startJetty() {
     ContextHandlerCollection contexts = new ContextHandlerCollection()
     jetty.setHandler(contexts)
     
-    Context explore = new Context(contexts,"/",Context.SESSIONS)
+    ServletContextHandler explore = new ServletContextHandler(contexts,"/",ServletContextHandler.SESSIONS)
     explore.resourceBase = '.'
     explore.addServlet(GroovyServlet, '/explore/*') 
     explore.addServlet(GroovyServlet, '/auth/*') 
     explore.addServlet(GroovyServlet, '/m/*')
+    explore.addServlet(GroovyServlet, '/grails/*')
     explore.setAttribute('version', '1.0')
     
     jetty.start()

@@ -1,0 +1,223 @@
+if(!session?.authenticated) forward("/auth/login")
+
+dir=new File(request.getParameter("name"))
+
+mc = [
+  compare: {a,b-> a.isDirectory()?(b.isDirectory()?a.name.compareTo(b.name):-1):(b.isDirectory()?1:a.name.compareTo(b.name)) }
+] as Comparator
+
+mc2 = [
+  compare: {a,b-> a.isDirectory()?(b.isDirectory()?a.name.compareTo(b.name):1):(b.isDirectory()?-1:a.name.compareTo(b.name)) }
+] as Comparator
+
+
+def displayGrailsApp(File folder){
+    html.div{
+        div{
+            h4("class":"folder",folder.name+"/")
+            folder.listFiles().sort(mc).each{f->
+                if(f.isDirectory()) div("class":"underfolder"){
+                    h4("class":"folder",f.name+"/")
+                    f.listFiles().sort(mc).each{
+                        displayUnfolded(it,'')
+                    }
+                }
+            }
+        }
+    }
+}
+
+def displayUnfolded(File folder, String path){
+    if(!folder.isHidden()){
+        if(folder.isDirectory()&&folder.name!="classes"){
+            if(hasFiles(folder)){
+                html.div("class":"underfolder"){
+                    h4("class":"folder",path+folder.name+"/")
+                    folder.listFiles().sort(mc).each{f->
+                        if(f.isDirectory() && f.name!="classes") displayUnfolded(f, path+folder.name+".")
+                        else{
+                           html.div("class":"underfolder"){a(path:f.absolutePath, onclick:"openFile('"+ f.name +"','"+ f.absolutePath +"',\$(this))", f.name)}
+                        }
+                    }
+                }
+            }
+            else folder.eachDir{f->
+                 displayUnfolded(f, path+folder.name+".")
+            }
+        }
+        else{
+            html.div("class":"underfolder"){a(path:folder.absolutePath, onclick:"openFile('"+ folder.name +"','"+folder.absolutePath+"',\$(this))", folder.name)}
+        }
+    }
+}
+
+def hasFiles(File folder){
+    def hasfile=false
+    folder.eachFile{
+        if(!it.isDirectory()) hasfile=true;
+    }
+    return hasfile
+}
+
+def sc='''
+$(document).ready(function(){
+    //localStorage.clear();
+    $('a[path]').each(function(){
+        var path=$(this).attr('path');
+        if(localStorage.getItem(path)=='dirty'){
+            $(this).prepend('*');
+        }
+    });
+    $('.folder').bind('click', function(){
+        if($(this).attr('folded')=='false'){
+            $(this).attr('folded','true');
+            $(this).parent().children(".underfolder").css('display','none');
+        }
+        else{
+            $(this).attr('folded','false');
+            $(this).parent().children(".underfolder").css('display','block');
+        }
+    });
+});
+
+saveAll=function(){
+    $('a[path]').each(function(){
+        if($(this).html().indexOf('*')==0){
+            var node=this;
+            var path=$(this).attr('path');
+            var name=path.replace(/^.*[\\/]/, '');
+            if(localStorage.getItem(path)=='dirty'){
+                jQuery.post("/explore/save",{text:localStorage.getItem("editor-"+path),file:path},function(result){
+                    $(node).html(name);
+                    localStorage.removeItem(path);
+                    localStorage.removeItem("editor-"+path);
+                });
+            }
+        }
+    });
+}
+
+updateEditor=function(name, path, node, data){
+        if(window.currentPath==path) return;
+        var Mode;
+        if(name.indexOf(".groovy")>-1){
+            Mode = require("ace/mode/groovy").Mode;
+        }
+        else if(name.indexOf(".gsp")>-1||name.indexOf(".xml")>-1||name.indexOf(".html")>-1){
+            Mode = require("ace/mode/html").Mode;
+        }
+        if(window.myEditor){
+            if(localStorage.getItem(window.currentPath)=="dirty"){
+                localStorage.setItem("editor-"+window.currentPath,window.myEditor.getSession().getValue());
+            }
+            localStorage.setItem("changing","true");
+            window.myEditor.getSession().setValue(data)
+            localStorage.removeItem("changing")
+        }
+        else{
+            window.myEditor=ace.edit("editor");
+            window.myEditor.getSession().setValue(data)
+            window.myEditor.getSession().on('change', function(){
+                if(!localStorage.getItem("changing")){
+                    localStorage.setItem(window.currentPath,"dirty");
+                    window.currentNode.html('*'+window.currentName);
+                }
+            });
+            window.myEditor.commands.addCommand({
+            name: "save",
+            bindKey: {
+              win: "Ctrl-S",
+              mac: "Command-S",
+              sender: "editor"
+            },
+            exec: function() {
+              jQuery.post("/explore/save",{text:window.myEditor.getSession().getValue(),file:window.currentPath},function(result){
+                  localStorage.removeItem(window.currentPath);
+                  localStorage.removeItem("editor-"+window.currentPath);
+                  window.currentNode.html(window.currentName);
+              });
+            }
+          });
+        }
+        
+        if(Mode) window.myEditor.getSession().setMode(new Mode());
+        window.currentPath=path;
+        window.currentNode=node;
+        window.currentName=name;
+        $('.content').css('height',$(window).height()-40);
+        $('.content').css('width',$(window).width()-260);
+        $('#editor').css('height','100%');
+        $('#editor').css('width','100%');
+}
+
+openFile=function(name,path,node){
+    if(localStorage.getItem(path)=="dirty"){
+        updateEditor(name, path, node, localStorage.getItem("editor-"+path))
+    }
+    else{
+        jQuery.post('editor?name='+path,function(data){updateEditor(name,path,node,data);});
+    }
+}
+'''
+
+def st='''
+        .folder,a {
+            cursor:pointer;
+        }
+        .underfolder{
+            overflow:hidden;
+            padding-left:5px;
+            display:none;
+            border-left:dashed 1px #555;
+        }
+        h4{
+            line-height:1.5em;
+        }
+        .content{
+            position:relative;
+            height:100%;
+            width:100%;
+        }
+'''
+
+println "<!DOCTYPE html>"
+html.html{
+    head{
+        title "Grails IDE"
+        link(href:'http://twitter.github.com/bootstrap/1.4.0/bootstrap.min.css', rel:"stylesheet", type:'text/css')
+        style(st)
+        script(src:"https://raw.github.com/ajaxorg/ace/master/build/src/ace.js", type:"text/javascript", charset:"utf-8")
+        script(src:"https://raw.github.com/ajaxorg/ace/master/build/src/mode-groovy.js", type:"text/javascript", charset:"utf-8")
+        script(src:"https://raw.github.com/ajaxorg/ace/master/build/src/mode-html.js", type:"text/javascript", charset:"utf-8")
+        script(src:"http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", type:"text/javascript", charset:"utf-8")
+        script{mkp.yieldUnescaped(sc)}
+    }
+    body(style:"position:relative;top:40px"){
+        div("class":"topbar"){
+          div("class":"topbar-inner"){
+            div("class":"container-fluid"){
+              a(class:"brand", href:"#","Groovide")
+              ul("class":"nav"){
+                li{a(href:"#", onclick:"saveAll()", "Save All")}
+                li{a(target:"shell", style:"cursor:pointer", onclick:"var visible=\$('#shell').css('visibility');\$('#shell').css('visibility',visible=='visible'?'hidden':'visible');return true;", "Shell")}
+              }
+            }
+          }
+        }
+        div("class":'container-fluid'){
+            div("class":"sidebar", style:"min-height:600px;height:100%;overflow:auto;"){
+                ["grails-app","web-app","lib","test","src"].each{
+                    File f=new File(dir,it)
+                    if(f.exists()) displayGrailsApp(f)
+                }
+            }
+            div("class":"content"){
+                div(id:"ctab"){
+                    div(id:"editor")
+                }
+            }
+            iframe("class":"container-fluid", src:"/explore/shell?dir="+dir.canonicalPath, style:"position:fixed;left:260px;top:40px;height:100%;border:none;visibility:hidden;z-index:100000;background-color:#eee;", id:"shell")
+        }
+        
+    }
+}

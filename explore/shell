@@ -1,37 +1,44 @@
+@Grab(group='commons-lang', module='commons-lang', version='2.1')
+
+import org.apache.commons.lang.StringEscapeUtils
+
 html.html{
     head{
         title("Groovy Shell")
-        script(src:"http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", type:"text/javascript", charset:"utf-8"){mkp.yield("")}
-        script(src:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.js', type:'text/javascript'){mkp.yield("")}
-        link(href:'http://google-code-prettify.googlecode.com/svn/branches/release-1-Jun-2011/src/prettify.css', rel:"stylesheet", type:'text/css')
-        script{
-            mkp.yieldUnescaped('''
+        script(src:"http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", type:"text/javascript", charset:"utf-8")
+        script(src:"https://raw.github.com/ilinsky/xmlhttprequest/master/XMLHttpRequest.js", type:"text/javascript", charset:"utf-8")
+        script('''
             $(document).ready(function(){
                 $('#form').submit(submitForm);
                 function submitForm() {
-                  var form = $(this);
-                    $.ajax({
-                      url: "cli?",
-                      type: "post",
-                      data: form.serialize(),
-                      success: success
-                    });
+                    var xhr = new XMLHttpRequest();
+                    var form = $(this);
+                    xhr.open('GET', 'cli?'+form.serialize(), true);
+                    $('#cmd').attr('disabled', 'disabled');
+                    xhr.send(null);
+                    var timer;
+                    $('#shell pre').html("")
+                    timer = window.setInterval(function() {
+                        if (xhr.readyState == XMLHttpRequest.DONE) {
+                            $('#shell pre').html(xhr.responseText);
+                            window.clearTimeout(timer);
+                            $('#cmd').attr("placeholder",$('#cmd').val());
+                            var cmd=$('#cmd').val("");
+                            $('#cmd').blur();
+                            $('#cmd').removeAttr('disabled');
+                        }
+                        else $('#shell pre').html(xhr.responseText);
+                    }, 1000);
                   return false;
                 }
-                function success(data){
-                    $('#shell pre').replaceWith("<pre class='prettyprint'>"+data+"</pre>");
-                    $('#cmd').val("");
-                    prettyPrint();
-                }
             });
-            ''')
-        }
+        ''')
     }
-    body(onload:"prettyPrint()"){
+    body{
         div(style:"width:100%;height:100%"){
             div(id:"cli"){
                 form(action:"cli", method:"post", id:"form"){
-                  input(type:"text", id:"cmd", name:"command", style:"top:10px; width:100%; height:25px;")
+                  input(type:"text", id:"cmd", placeholder:"command", name:"command", style:"top:10px; width:100%; height:25px;")
                   input(type:"hidden", name:"dir", value:request.getParameter("dir"))
                 }
             }
