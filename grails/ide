@@ -42,7 +42,7 @@ def displayUnfolded(File folder, String path){
                 }
             }
             else folder.eachDir{f->
-                 displayUnfolded(f, path+folder.name+".")
+                displayUnfolded(f, path+folder.name+".")
             }
         }
         else{
@@ -65,6 +65,7 @@ $(document).ready(function(){
     $('a[path]').each(function(){
         var path=$(this).attr('path');
         if(localStorage.getItem(path)=='dirty'){
+            $('.dropdown-menu').append('<li path="'+ path +'"><a onclick="openFile(\\''+$(this).html()+'\\',\\''+path+'\\')">'+$(this).html()+"</a></li>");
             $(this).prepend('*');
         }
     });
@@ -110,17 +111,21 @@ updateEditor=function(name, path, node, data){
             if(localStorage.getItem(window.currentPath)=="dirty"){
                 localStorage.setItem("editor-"+window.currentPath,window.myEditor.getSession().getValue());
             }
-            localStorage.setItem("changing","true");
-            window.myEditor.getSession().setValue(data)
-            localStorage.removeItem("changing")
+            localStorage.setItem("changingFile","true");
+            window.myEditor.getSession().setValue(data);
+            $('.dropdown-toggle').text(name);
+            localStorage.removeItem("changingFile");
         }
         else{
             window.myEditor=ace.edit("editor");
             window.myEditor.getSession().setValue(data)
             window.myEditor.getSession().on('change', function(){
-                if(!localStorage.getItem("changing")){
+                if(!localStorage.getItem("changingFile")){
                     localStorage.setItem(window.currentPath,"dirty");
+                    localStorage.setItem("editor-"+window.currentPath,window.myEditor.getSession().getValue());
                     window.currentNode.html('*'+window.currentName);
+                    if($('li[path="'+ window.currentPath +'"]').length==0)
+                        $('.dropdown-menu').append('<li path="'+ window.currentPath +'"><a onclick="openFile(\\''+window.currentName+'\\',\\''+window.currentPath+'\\')">'+window.currentName+"</a></li>");
                 }
             });
             window.myEditor.commands.addCommand({
@@ -132,6 +137,7 @@ updateEditor=function(name, path, node, data){
             },
             exec: function() {
               jQuery.post("/explore/save",{text:window.myEditor.getSession().getValue(),file:window.currentPath},function(result){
+                  $('li[path="'+ window.currentPath +'"]').remove();
                   localStorage.removeItem(window.currentPath);
                   localStorage.removeItem("editor-"+window.currentPath);
                   window.currentNode.html(window.currentName);
@@ -151,11 +157,15 @@ updateEditor=function(name, path, node, data){
 }
 
 openFile=function(name,path,node){
+    if(node==null) node=$('a[path="'+path+'"]');
     if(localStorage.getItem(path)=="dirty"){
         updateEditor(name, path, node, localStorage.getItem("editor-"+path))
     }
     else{
-        jQuery.post('editor?name='+path,function(data){updateEditor(name,path,node,data);});
+        jQuery.post('editor?name='+path,function(data){
+            updateEditor(name,path,node,data);
+        });
+        
     }
 }
 '''
@@ -190,6 +200,7 @@ html.html{
         script(src:"https://raw.github.com/ajaxorg/ace/master/build/src/mode-groovy.js", type:"text/javascript", charset:"utf-8")
         script(src:"https://raw.github.com/ajaxorg/ace/master/build/src/mode-html.js", type:"text/javascript", charset:"utf-8")
         script(src:"http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js", type:"text/javascript", charset:"utf-8")
+        script(src:"http://twitter.github.com/bootstrap/1.4.0/bootstrap-dropdown.js", type:"text/javascript", charset:"utf-8")
         script{mkp.yieldUnescaped(sc)}
     }
     body(style:"position:relative;top:40px"){
@@ -200,6 +211,11 @@ html.html{
               ul("class":"nav"){
                 li{a(href:"#", onclick:"saveAll()", "Save All")}
                 li{a(target:"shell", style:"cursor:pointer", onclick:"var visible=\$('#shell').css('visibility');\$('#shell').css('visibility',visible=='visible'?'hidden':'visible');return true;", "Shell")}
+                li("class":"dropdown", "data-dropdown":"dropdown"){
+                    a(href:"#", "class":"dropdown-toggle", "Unsaved Files")
+                    ul("class":"dropdown-menu"){
+                    }
+                }
               }
             }
           }
@@ -218,6 +234,5 @@ html.html{
             }
             iframe("class":"container-fluid", src:"/explore/shell?dir="+dir.canonicalPath, style:"position:fixed;left:260px;top:40px;height:100%;border:none;visibility:hidden;z-index:100000;background-color:#eee;", id:"shell")
         }
-        
     }
 }
