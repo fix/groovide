@@ -21,7 +21,7 @@ else html.html{
     }
     body(style:"background-color: #efe;"){
         
-        form(style:"position: fixed;margin:auto", action:"/auth/login", method:"post"){
+        form(style:"position: fixed;margin:auto", action:"/groovide/auth/login", method:"post"){
             h3("Login")
             input(type:"text", name:"user", placeholder:"user")
             br()

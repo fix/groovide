@@ -56,7 +56,7 @@ html.html {
       }
     }
     div("class":'container'){
-        h3(dir.canonicalPath)
+        h3("Previewing " + dir.absolutePath)
         if(dir.isDirectory()){
           table("class":"files"){
             thead{
@@ -109,9 +109,12 @@ html.html {
             mkp.yieldUnescaped(new PegDownProcessor().markdownToHtml(dir.text))
           }
           else if(dir.name.endsWith(".html")){
-            frame(width:'100%', height:'100%'){
-              mkp.yieldUnescaped(dir.text)
-            }
+            iframe(width:'100%', height:'600px', style:"border:none", src:dir.absolutePath)
+          }
+          else if(dir.name.endsWith(".svg")){
+              object(data:"image-svg.svg",type:"image/svg+xml"){
+                  mkp.yieldUnescaped(dir.text)
+              }
           }
           else{
             pre("class":"prettyprint"){

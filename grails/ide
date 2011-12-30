@@ -64,7 +64,7 @@ $(document).ready(function(){
     //localStorage.clear();
     $('a[path]').each(function(){
         var path=$(this).attr('path');
-        if(localStorage.getItem(path)=='dirty'){
+        if(localStorage.getItem(path)){
             $('.dropdown-menu').append('<li path="'+ path +'"><a onclick="openFile(\\''+$(this).html()+'\\',\\''+path+'\\')">'+$(this).html()+"</a></li>");
             $(this).prepend('*');
         }
@@ -87,11 +87,11 @@ saveAll=function(){
             var node=this;
             var path=$(this).attr('path');
             var name=path.replace(/^.*[\\/]/, '');
-            if(localStorage.getItem(path)=='dirty'){
-                jQuery.post("/explore/save",{text:localStorage.getItem("editor-"+path),file:path},function(result){
+            if(localStorage.getItem(path)){
+                jQuery.post("/explore/save",{text:localStorage.getItem(path),file:path},function(result){
+                    $('li[path="'+ path +'"]').remove();
                     $(node).html(name);
                     localStorage.removeItem(path);
-                    localStorage.removeItem("editor-"+path);
                 });
             }
         }
@@ -108,9 +108,6 @@ updateEditor=function(name, path, node, data){
             Mode = require("ace/mode/html").Mode;
         }
         if(window.myEditor){
-            if(localStorage.getItem(window.currentPath)=="dirty"){
-                localStorage.setItem("editor-"+window.currentPath,window.myEditor.getSession().getValue());
-            }
             localStorage.setItem("changingFile","true");
             window.myEditor.getSession().setValue(data);
             $('.dropdown-toggle').text(name);
@@ -121,8 +118,7 @@ updateEditor=function(name, path, node, data){
             window.myEditor.getSession().setValue(data)
             window.myEditor.getSession().on('change', function(){
                 if(!localStorage.getItem("changingFile")){
-                    localStorage.setItem(window.currentPath,"dirty");
-                    localStorage.setItem("editor-"+window.currentPath,window.myEditor.getSession().getValue());
+                    localStorage.setItem(window.currentPath,window.myEditor.getSession().getValue());
                     window.currentNode.html('*'+window.currentName);
                     if($('li[path="'+ window.currentPath +'"]').length==0)
                         $('.dropdown-menu').append('<li path="'+ window.currentPath +'"><a onclick="openFile(\\''+window.currentName+'\\',\\''+window.currentPath+'\\')">'+window.currentName+"</a></li>");
@@ -139,7 +135,6 @@ updateEditor=function(name, path, node, data){
               jQuery.post("/explore/save",{text:window.myEditor.getSession().getValue(),file:window.currentPath},function(result){
                   $('li[path="'+ window.currentPath +'"]').remove();
                   localStorage.removeItem(window.currentPath);
-                  localStorage.removeItem("editor-"+window.currentPath);
                   window.currentNode.html(window.currentName);
               });
             }
@@ -158,8 +153,8 @@ updateEditor=function(name, path, node, data){
 
 openFile=function(name,path,node){
     if(node==null) node=$('a[path="'+path+'"]');
-    if(localStorage.getItem(path)=="dirty"){
-        updateEditor(name, path, node, localStorage.getItem("editor-"+path))
+    if(localStorage.getItem(path)){
+        updateEditor(name, path, node, localStorage.getItem(path))
     }
     else{
         jQuery.post('editor?name='+path,function(data){
@@ -182,6 +177,7 @@ def st='''
         }
         h4{
             line-height:1.5em;
+            font-size:12px;
         }
         .content{
             position:relative;
@@ -207,7 +203,7 @@ html.html{
         div("class":"topbar"){
           div("class":"topbar-inner"){
             div("class":"container-fluid"){
-              a(class:"brand", href:"#","Groovide")
+              a(class:"brand", href:"#",dir.name)
               ul("class":"nav"){
                 li{a(href:"#", onclick:"saveAll()", "Save All")}
                 li{a(target:"shell", style:"cursor:pointer", onclick:"var visible=\$('#shell').css('visibility');\$('#shell').css('visibility',visible=='visible'?'hidden':'visible');return true;", "Shell")}
@@ -232,7 +228,7 @@ html.html{
                     div(id:"editor")
                 }
             }
-            iframe("class":"container-fluid", src:"/explore/shell?dir="+dir.canonicalPath, style:"position:fixed;left:260px;top:40px;height:100%;border:none;visibility:hidden;z-index:100000;background-color:#eee;", id:"shell")
+            iframe("class":"container-fluid", src:"/groovide/explore/shell?dir="+dir.canonicalPath, style:"position:fixed;left:260px;top:40px;height:100%;border:none;visibility:hidden;z-index:100000;background-color:#eee;", id:"shell")
         }
     }
 }
