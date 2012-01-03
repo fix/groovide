@@ -19,7 +19,7 @@ html.html{
         div("data-role":"page"){
             div("data-role":"header"){
                 if(f.isDirectory()){
-                    a(rel:"external", href:"/explore/shell?dir="+f.canonicalPath, "Shell")
+                    a(rel:"external", href:"/groovide/explore/shell?dir="+f.canonicalPath, "Shell")
                 }
                 else{
                     a(href:"view?name="+f.parentFile.canonicalPath, "data-direction":"reverse", "Exit")
@@ -29,7 +29,6 @@ html.html{
             div("data-role":"content"){
                 if(f.isDirectory()){
                     ul("data-role":"listview", "data-inset":"true", "data-filter":"true"){
-                        li{a(href:"view?name="+f.canonicalPath,".")}
                         if(f.parentFile) li("data-icon":"arrow-l"){a(href:"view?name="+f.parentFile.canonicalPath, "data-direction":"reverse", "..")}
                         if(f.canExecute()) f.listFiles().sort{a,b->a.isDirectory()?(b.isDirectory()?a.name.compareTo(b.name):-1):(b.isDirectory()?1:a.name.compareTo(b.name))}.each{item->
                             if(!item.isHidden())li{a(href:"view?name="+item.canonicalPath, item.name+(item.isDirectory()?"/":""))}

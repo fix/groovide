@@ -104,7 +104,7 @@ html.html {
         else if(dir.name.toLowerCase()=~/\.(png|jpg|tiff)$/){
           img(src:"getfile?name="+dir.canonicalPath)
         }
-        else if(dir.length()<200000){
+        else {
           if(dir.name.endsWith(".md")){
             mkp.yieldUnescaped(new PegDownProcessor().markdownToHtml(dir.text))
           }
@@ -116,19 +116,19 @@ html.html {
                   mkp.yieldUnescaped(dir.text)
               }
           }
-          else{
+          else if(dir.name.endsWith(".ogg")){
+            video(width:"100%", height:"600px", controls:"controls"){
+              source(src:"getfile?download=true&name="+dir.canonicalPath, type:"video/mp4")
+            }
+          }
+          else if(dir.name.endsWith(".pdf")){
+            object(width:"100%", height:"600px", type:"application/pdf", data:"getfile?download=true&name="+dir.canonicalPath)
+          }
+          else if(dir.length()<200000){
             pre("class":"prettyprint"){
               mkp.yield(dir.text)
             }
           }
-        }
-        else if(dir.name.endsWith(".ogg")){
-            video(width:"100%", height:"600px", controls:"controls"){
-              source(src:"getfile?download=true&name="+dir.canonicalPath, type:"video/mp4")
-            }
-        }
-        else if(dir.name.endsWith(".pdf")){
-            object(width:"100%", height:"600px", type:"application/pdf", data:"getfile?download=true&name="+dir.canonicalPath)
         }
    }
   }
